@@ -48,7 +48,7 @@ test.skip("Page PW testing code", async ({ page }) => {
   await expect(page).toHaveTitle("Google");
 });
 
-test.only("UI Controls", async ({ page }) => {
+test.skip("UI Controls", async ({ page }) => {
   await page.goto("https://rahulshettyacademy.com/loginpagePractise/");
   const usernName = page.locator("#username");
   const signIn = page.locator("#signInBtn");
@@ -61,5 +61,29 @@ test.only("UI Controls", async ({ page }) => {
   //assertion
   await expect(page.locator(".radiotextsty").last()).toBeChecked();
 
+  await page.pause();
+});
+
+test.only("Child Windows handlers", async ({ browser }) => {
+  const initialPage = await browser.newContext();
+  const page = await initialPage.newPage();
+  //We are automating this web site.
+  await page.goto("https://rahulshettyacademy.com/loginpagePractise/");
+  //Creating variable for a locator that probably will open a new tab.
+  const documentLink = page.locator("[href*='documents-request']");
+
+  /*We MUST handle the promise that will generate opening any new tab it could be more than one so that's why 'newTab' is an array, all new tab will
+  required a new array variable to store all the tabs correctly.*/
+  const [newTab] = await Promise.all([
+    initialPage.waitForEvent("page"),
+    documentLink.click(),
+  ]);
+
+  //Test is extracted from the new tab because now the automation tool knows that there are more than one tab open. with the previous promise.
+  const text = await newTab.locator(".red").textContent();
+  const arrayText = text.split("@");
+  const userNameTab = arrayText[1].split(".")[0];
+  console.log(userNameTab);
+  await page.locator("#username").fill(userNameTab);
   await page.pause();
 });
